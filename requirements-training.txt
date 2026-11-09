@@ -1,0 +1,6 @@
+-r requirements.txt
+kagglehub>=0.3,<2
+pandas>=2,<4
+scikit-learn>=1.4,<2
+jupyter>=1,<2
+ipython>=8,<10
