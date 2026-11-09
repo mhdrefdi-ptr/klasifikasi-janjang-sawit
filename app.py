@@ -52,14 +52,21 @@ def predict_image(image):
     image = ImageOps.exif_transpose(image).convert('RGB')
     x = np.asarray(image.resize(SIZE, Image.Resampling.BILINEAR), np.float32)[None]
     probabilities = model.predict(x, verbose=0)[0]
-    status = 'Perlu pemeriksaan manual' if probabilities.max() < threshold else 'Prediksi diterima; tetap verifikasi kondisi lapangan'
+    status = 'Perlu pemeriksaan manual' if probabilities.max() < threshold else ''
     return dict(zip(CLASSES, map(float, probabilities))), status, gradcam(image)
 
 
-st.set_page_config(page_title='Kematangan TBS', layout='centered')
+st.set_page_config(page_title='Kematangan TBS', layout='wide')
 st.title('Klasifikasi Kematangan TBS')
 st.caption('MobileNetV2 | Empat tingkat kematangan | Grad-CAM')
-st.warning('Bukan pengganti penilaian ahli. Confidence tinggi tidak menjamin input merupakan sawit.')
+with st.sidebar:
+    st.subheader('Tim PakaiAI')
+    st.markdown(
+        '1. Muhammad Refdi Pasaribu (231110267)\n'
+        '2. Alberto William (231110810)\n'
+        '3. Kevin Al Kautsar (231110461)\n'
+        '4. Jethro Giovanno (231110940)'
+    )
 directory = ROOT / 'hasil_tbs'
 required = ['model.keras', 'labels.json', 'inference.json']
 if not all((directory / name).is_file() for name in required):
@@ -80,18 +87,26 @@ if uploaded is not None:
     except (OSError, ValueError, Image.DecompressionBombError):
         st.error('Berkas tidak dapat dibaca sebagai citra yang aman.')
         st.stop()
-    st.image(image, caption='Citra masukan', width='stretch')
-    if st.button('Analisis kematangan', type='primary'):
+    input_column, result_column, gradcam_column = st.columns(3)
+    preview = image.copy()
+    preview.thumbnail((480, 360))
+    with input_column:
+        st.subheader('Citra masukan')
+        st.image(preview)
+        analyze = st.button('Analisis kematangan', type='primary')
+    if analyze:
         with st.spinner('Menghitung prediksi dan Grad-CAM...'):
             probabilities, status, overlay = predict_image(image)
         label = max(probabilities, key=probabilities.get)
-        st.metric('Prediksi model', label.title(), help='Tetap periksa status confidence di bawah.')
-        if probabilities[label] < threshold:
-            st.warning(status)
-        else:
-            st.success(status)
-        st.bar_chart(
-            [{'Kelas': name, 'Confidence': score} for name, score in probabilities.items()],
-            x='Kelas', y='Confidence', horizontal=True,
-        )
-        st.image(overlay, caption='Grad-CAM: fokus visual model, bukan segmentasi atau bukti kausal.', width='stretch')
+        with result_column:
+            st.subheader('Hasil analisis')
+            st.metric('Prediksi model', label.title())
+            if probabilities[label] < threshold:
+                st.warning(status)
+            st.bar_chart(
+                [{'Kelas': name, 'Confidence': score} for name, score in probabilities.items()],
+                x='Kelas', y='Confidence', horizontal=True, height=240,
+            )
+        with gradcam_column:
+            st.subheader('Grad-CAM')
+            st.image(overlay, caption='Fokus visual model, bukan segmentasi atau bukti kausal.', width=320)
