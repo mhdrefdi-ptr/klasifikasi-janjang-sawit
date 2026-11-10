@@ -21,10 +21,9 @@ GPU opsional; CPU bisa dipakai tetapi training lebih lambat. Instalasi TensorFlo
 python train.py
 ```
 
-Alternatif interaktif: `jupyter notebook Klasifikasi_TBS_MobileNetV2.ipynb`.
-Keduanya menjalankan pipeline sama, mengunduh dataset versi 1 dengan kagglehub, lalu menyimpan hasil ke `hasil_tbs/` dan arsip `hasil_tbs.zip`. Internet dibutuhkan untuk unduhan awal dataset dan bobot ImageNet. Jika Kaggle meminta autentikasi, gunakan mekanisme resmi; jangan masukkan token ke source code.
+Script training mengunduh dataset versi 1 dengan kagglehub, lalu menyimpan hasil ke `hasil_tbs/` dan arsip `hasil_tbs.zip`. Internet dibutuhkan untuk unduhan awal dataset dan bobot ImageNet. Jika Kaggle meminta autentikasi, gunakan mekanisme resmi; jangan masukkan token ke source code.
 
-Audit sampel/label sebelum eksperimen final. Dataset memiliki 857 citra, 6 duplikat piksel, 851 citra unik. Split dibangun ulang sekitar 70/15/15 setelah deduplikasi, bukan memakai CSV bawaan 70/20/10. Training script menyimpan grafik tanpa membuka jendela; notebook menampilkan grafik secara interaktif.
+Audit sampel/label sebelum eksperimen final. Dataset memiliki 857 citra, 6 duplikat piksel, 851 citra unik. Split dibangun ulang sekitar 70/15/15 setelah deduplikasi, bukan memakai CSV bawaan 70/20/10. Training script menyimpan grafik tanpa membuka jendela.
 
 ## 3. Aplikasi Streamlit
 
@@ -68,7 +67,7 @@ Lokal saja belum memenuhi syarat tautan aplikasi publik dalam format laporan.
 python -m unittest discover -s tests -v
 ```
 
-Pengujian offline memeriksa sintaks, konsistensi inferensi notebook/aplikasi, sinkronisasi training, dan guard split. Bukan pengganti training atau evaluasi GPU.
+Pengujian offline memeriksa sintaks, konsistensi inferensi aplikasi, sinkronisasi training, dan guard split. Bukan pengganti training atau evaluasi GPU.
 
 ## Sumber
 
