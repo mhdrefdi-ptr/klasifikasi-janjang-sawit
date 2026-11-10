@@ -1,8 +1,33 @@
 # Klasifikasi Kematangan TBS dengan MobileNetV2
 
-Training lokal, aplikasi Streamlit. Jalankan seluruh perintah dari folder proyek.
+Aplikasi web karya Tim PakaiAI berbasis Streamlit dan MobileNetV2 untuk mengklasifikasikan foto tandan buah segar (TBS) kelapa sawit menjadi **mentah**, **kurang matang**, **matang**, atau **lewat matang**. Pengguna mengunggah foto untuk memperoleh prediksi, skor confidence setiap kelas, dan visualisasi Grad-CAM, disertai peringatan pemeriksaan manual saat confidence rendah. Repository menyediakan training lokal, audit dataset, dan evaluasi model untuk pembelajaran serta eksperimen; hasil prediksi bukan pengganti penilaian ahli di lapangan.
 
-## 1. Instalasi
+## Features
+
+- Klasifikasi empat tingkat kematangan TBS: mentah, kurang matang, matang, dan lewat matang.
+- Unggah citra JPG, JPEG, PNG, atau WebP melalui Streamlit.
+- Skor setiap kelas, peringatan confidence rendah, dan visualisasi Grad-CAM.
+- Training MobileNetV2 lokal, audit data, deduplikasi, dan evaluasi model.
+
+## How It Works
+
+1. **Persiapan dataset:** Dataset diunduh, citra diaudit, dan duplikat dihapus sebelum data dibagi menjadi train, validation, dan test.
+2. **Training model:** MobileNetV2 menggunakan bobot awal ImageNet. Training dimulai dengan backbone beku, kemudian dilanjutkan dengan fine-tuning.
+3. **Pemilihan model:** Model dipilih berdasarkan validation loss. Data validation juga digunakan untuk menentukan threshold pemeriksaan manual.
+4. **Unggah foto:** Pengguna mengunggah foto TBS melalui Streamlit, lalu menekan tombol **Analisis kematangan**.
+5. **Pemrosesan citra:** Orientasi foto dikoreksi, citra dikonversi ke RGB, lalu ukurannya diubah menjadi 224 x 224 piksel.
+6. **Prediksi kematangan:** Model menghasilkan skor untuk empat kelas. Kelas dengan skor tertinggi menjadi prediksi; jika skornya di bawah threshold, aplikasi menampilkan peringatan pemeriksaan manual.
+7. **Visualisasi hasil:** Aplikasi menampilkan prediksi, skor setiap kelas, dan Grad-CAM untuk menunjukkan fokus visual model. Grad-CAM bukan segmentasi atau bukti kausal.
+
+## Requirements
+
+- Python 3.10-3.12 dan pip; virtual environment disarankan.
+- Dependensi aplikasi: `requirements.txt`; dependensi training: `requirements-training.txt`.
+- Internet untuk instalasi serta unduhan awal dataset dan bobot ImageNet.
+- Artefak inferensi di `hasil_tbs/`: `model.keras`, `labels.json`, dan `inference.json`.
+- GPU opsional; CPU dapat digunakan, tetapi training lebih lambat.
+
+## Installation
 
 Gunakan Python 3.10-3.12 agar kompatibilitas TensorFlow lebih mudah.
 
@@ -12,10 +37,12 @@ source .venv/bin/activate
 python -m pip install -r requirements-training.txt
 ```
 
+Untuk inferensi saja dengan model yang sudah tersedia, ganti `requirements-training.txt` dengan `requirements.txt`.
+
 Windows PowerShell: aktivasi dengan `.venv\Scripts\Activate.ps1`.
 GPU opsional; CPU bisa dipakai tetapi training lebih lambat. Instalasi TensorFlow standar tidak menjamin akselerasi GPU; cocokkan driver, sistem operasi dan petunjuk resmi TensorFlow.
 
-## 2. Training lokal
+## Training Lokal
 
 ```bash
 python train.py
@@ -25,7 +52,7 @@ Script training mengunduh dataset versi 1 dengan kagglehub, lalu menyimpan hasil
 
 Audit sampel/label sebelum eksperimen final. Dataset memiliki 857 citra, 6 duplikat piksel, 851 citra unik. Split dibangun ulang sekitar 70/15/15 setelah deduplikasi, bukan memakai CSV bawaan 70/20/10. Training script menyimpan grafik tanpa membuka jendela.
 
-## 3. Aplikasi Streamlit
+## Menjalankan Aplikasi
 
 ```bash
 streamlit run app.py
@@ -61,14 +88,6 @@ Lokal saja belum memenuhi syarat tautan aplikasi publik dalam format laporan.
 3. Tunggu build, uji prediksi benar/salah, status confidence rendah, dan Grad-CAM. Hosting gratis memiliki batas resource dan bukan jaminan layanan produksi.
 4. Rekam tangkapan layar file model, build, UI dan hasil. Masukkan URL publik ke laporan; uji tanpa login.
 
-## Pengujian
-
-```bash
-python -m unittest discover -s tests -v
-```
-
-Pengujian offline memeriksa sintaks, konsistensi inferensi aplikasi, sinkronisasi training, dan guard split. Bukan pengganti training atau evaluasi GPU.
-
 ## Sumber
 
 Hadee Madadum, Oil Palm Fruit Ripeness Classification Dataset, versi 1, CC BY 4.0:
@@ -77,3 +96,20 @@ https://www.kaggle.com/datasets/hadeemadadum/oil-palm-fruit-ripeness-classificat
 MobileNetV2: https://arxiv.org/abs/1801.04381
 Grad-CAM: https://arxiv.org/abs/1610.02391
 Transfer learning: https://www.tensorflow.org/tutorials/images/transfer_learning
+
+## Troubleshooting
+
+- **Model belum tersedia:** jalankan `python train.py` atau salin tiga artefak model yang sesuai ke `hasil_tbs/`.
+- **Gagal memuat artefak:** cocokkan TensorFlow/Keras dengan `hasil_tbs/environment.json`. Pastikan urutan label sesuai proyek, output model memiliki empat kelas, dan threshold berada pada rentang 0-1.
+- **Unduhan gagal:** periksa koneksi internet. Jika Kaggle meminta autentikasi, gunakan mekanisme resmi; jangan simpan token di repository.
+- **Citra tidak terbaca:** unggah citra JPG, JPEG, PNG, atau WebP yang valid.
+- **Model lama masih digunakan:** restart Streamlit setelah mengganti artefak untuk memperbarui cache.
+- **Confidence rendah:** periksa kematangan secara manual; skor model bukan jaminan prediksi benar.
+
+## Testing
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+Pengujian offline memeriksa sintaks, konsistensi inferensi aplikasi, sinkronisasi training, dan guard split. Bukan pengganti training atau evaluasi GPU.
